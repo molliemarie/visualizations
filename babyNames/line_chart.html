@@ -124,17 +124,15 @@ d3.csv("names.csv", type, function(error, data) {
       .attr("dy", "0.35em")
       .style("font", "10px sans-serif")
       .style("fill", 'transparent')
-      .text(function(d) { return d.id; });
-
-  // when you mouseover name labels, add "hovering" class to associated line
-  nameText.on("mouseover", function () {
-      d3.select(this.previousSibling).classed("hovering", true);
-      d3.select(this).classed("hovering", true);
-  }).on("mouseleave", function() {
-      d3.select(this.previousSibling).classed("hovering", false);
-      d3.select(this).classed("hovering", false);
-  });
-});
+      .text(function(d) { return d.id; })
+      .on("mouseover", function () {
+          d3.select(this.previousSibling).classed("hovering", true);
+          d3.select(this).classed("hovering", true);
+      }).on("mouseleave", function() {
+          d3.select(this.previousSibling).classed("hovering", false);
+          d3.select(this).classed("hovering", false);
+      });
+    });
 
 
 // parse dates
