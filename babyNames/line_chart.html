@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+/*.x-axis path {
+  display: none;
+}*/
+
+.line {
+  fill: none;
+  stroke: Plum;
+  stroke-width: 1.5px;
+}
+
+/*When line is attached with class "hovering, darken and thicken line*/
+path.line.hovering {
+    stroke-width: 5px;
+    stroke: Indigo;
+}
+
+text.text.hovering {
+  font-weight: bold;
+}
+
+/*line:hover {
+ stroke-width: 5;
+}*/
+
+</style>
+<svg width="900" height="500"></svg>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    margin = {top: 30, right: 80, bottom: 30, left: 50},
+    w = svg.attr("width") - margin.left - margin.right,
+    h = svg.attr("height") - margin.top - margin.bottom;
+
+var xScale = d3.scaleTime().range([0, w]),
+    yScale = d3.scaleLinear().range([h, 0]),
+    ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var parseTime = d3.timeParse("%Y%m%d");
+
+var line = d3.line()
+    .curve(d3.curveBasis)
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.count); });
+
+d3.csv("names.csv", type, function(error, data) {
+  if (error) throw error;
+  // setup name data. Creates objects with each name as the id and count & date as values associated with each name.
+  var names = data.columns.slice(1).map(function(id) {
+    return {
+      id: id,
+      values: data.map(function(d) {
+        return {date: d.date, count: d[id]};
+      })
+    };
+  });
+
+  // x, y, and ordinal(name data) scales
+  xScale.domain(d3.extent(data, function(d) { return d.date; }));
+  yScale.domain([0,
+    d3.max(names, function(c) { return d3.max(c.values, function(d) { return d.count; }); })
+  ]);
+  ordinalScale.domain(names.map(function(c) { return c.id; }));
+
+  // add chart title
+  g.append("text")
+   .attr("x", (w / 2))             
+   .attr("y", 0 - (margin.top / 2))
+   .attr("text-anchor", "middle")  
+   .attr("font-family", "sans-serif")
+   .attr("font-weight", "bold")
+   .style("font-size", "16px") 
+   .text("Most popular Female Baby Names + Me (Mollie)");
+
+  // x axis
+  g.append("g")
+      .attr("class", "axis x-axis")
+      .attr("transform", "translate(0," + h + ")")
+      .call(d3.axisBottom(xScale));
+
+  // Y axis
+  g.append("g")
+      .attr("class", "axis y-axis")
+      .call(d3.axisLeft(yScale))
+    .append("text")
+      .attr("transform", "translate(" + (-margin.left + 8) + "," + ((h - margin.top - margin.bottom)/2) + ") rotate(-90)")
+      .attr("fill", "#000")
+      .style("text-anchor", "center")
+      .text("Babies");
+
+  var name = g.selectAll(".name")
+    .data(names)
+    .enter().append("g")
+    .attr("class", "name");
+
+  // create lines
+  var namePath = name.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+
+  // on mouseover of line, attach "hovering" class to line
+  namePath.on("mouseover", function () {
+      d3.select(this).classed("hovering", true);
+      d3.select(this.nextSibling).classed("hovering", true);
+      console.log(this)
+      console.log(this.nextSibling)
+  }).on("mouseleave", function() {
+      d3.select(this).classed("hovering", false);
+      d3.select(this.nextSibling).classed("hovering", false);
+  });
+
+  // add name labels
+  var text = name.append("text")
+      .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
+      .attr("class", "text")
+      .attr("transform", function(d) { return "translate(" + xScale(d.value.date) + "," + yScale(d.value.count) + ")"; })
+      .attr("x", 3)
+      .attr("dy", "0.35em")
+      .style("font", "10px sans-serif")
+      .text(function(d) { return d.id; });
+
+  // when you mouseover name labels, add "hovering" class to associated line
+  text.on("mouseover", function () {
+      d3.select(this.previousSibling).classed("hovering", true);
+      d3.select(this).classed("hovering", true);
+  }).on("mouseleave", function() {
+      d3.select(this.previousSibling).classed("hovering", false);
+      d3.select(this).classed("hovering", false);
+  });
+});
+
+
+// parse dates
+function type(d, _, columns) {
+  d.date = parseTime(d.date);
+  for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
+  return d;
+}
+
+</script>
