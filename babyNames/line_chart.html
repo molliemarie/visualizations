@@ -19,7 +19,7 @@ path.line.hovering {
 }
 
 text.text.hovering {
-  font-weight: bold;
+  fill: black;
 }
 
 /*line:hover {
@@ -116,17 +116,18 @@ d3.csv("names.csv", type, function(error, data) {
   });
 
   // add name labels
-  var text = name.append("text")
+  var nameText = name.append("text")
       .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
       .attr("class", "text")
       .attr("transform", function(d) { return "translate(" + xScale(d.value.date) + "," + yScale(d.value.count) + ")"; })
       .attr("x", 3)
       .attr("dy", "0.35em")
       .style("font", "10px sans-serif")
+      .style("fill", 'transparent')
       .text(function(d) { return d.id; });
 
   // when you mouseover name labels, add "hovering" class to associated line
-  text.on("mouseover", function () {
+  nameText.on("mouseover", function () {
       d3.select(this.previousSibling).classed("hovering", true);
       d3.select(this).classed("hovering", true);
   }).on("mouseleave", function() {
